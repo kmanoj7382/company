@@ -1,0 +1,18 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and databases
+*.log
+*.sqlite
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary folders
+tmp/
+temp/

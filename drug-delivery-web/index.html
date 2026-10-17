@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#102a43" />
+    <title>Anand Delivery — Payment Desk & Pharma Register</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="scanner.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <!-- Device Identification Step -->
+      <section class="staff-setup" id="staffSetup" aria-labelledby="setupTitle">
+        <div class="setup-aside">
+          <a class="brand" href="#"><span class="brand-mark">A</span><span>Anand <small>Delivery</small></span></a>
+          <div class="aside-copy">
+            <p class="kicker">Pharma Delivery Operations</p>
+            <h1>Close every delivery with certainty.</h1>
+            <p>Full CRUD register for MARG ERP medical invoices, live barcode scanning, manual entry, and Google Sheets synchronization.</p>
+          </div>
+          <ul class="trust-list">
+            <li><i data-lucide="scan-line"></i> Barcode &amp; Manual Invoice Entry</li>
+            <li><i data-lucide="table-properties"></i> Full CRUD Operations on 44+ Invoices</li>
+            <li><i data-lucide="file-spreadsheet"></i> MARG ERP Excel Data Analysis &amp; Import</li>
+            <li><i data-lucide="shield-check"></i> Audit-protected Payments (UPI, Cash, Cheque)</li>
+          </ul>
+          <p class="aside-foot">© 2026 Anand Delivery · Bengaluru Pharma Operations</p>
+        </div>
+        <div class="setup-panel">
+          <div class="setup-card">
+            <span class="step-badge">01</span>
+            <p class="kicker">Device Identification</p>
+            <h2 id="setupTitle">Who is operating this desk?</h2>
+            <p class="intro">Your name and contact number will be stamped on all manual entries and payment collection records.</p>
+            <form id="staffForm" novalidate>
+              <label>Staff member name
+                <input id="staffName" autocomplete="name" placeholder="e.g. Ramesh Kumar" value="Ramesh Kumar" required minlength="2" />
+              </label>
+              <label>Phone number
+                <input id="staffPhone" autocomplete="tel" inputmode="tel" placeholder="e.g. +91 98450 12345" value="+91 98450 12345" required />
+              </label>
+              <p class="field-error" id="staffError" role="alert"></p>
+              <button class="primary-button wide" type="submit">Open Payment Desk &amp; Register <i data-lucide="arrow-right"></i></button>
+            </form>
+            <button class="settings-link" id="openSettingsFromSetup" type="button"><i data-lucide="settings-2"></i> Configure Google Sheet connection</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Workspace -->
+      <section class="workspace hidden" id="workspace">
+        <aside class="sidebar">
+          <a class="brand" href="#"><span class="brand-mark">A</span><span>Anand <small>Delivery</small></span></a>
+          <nav>
+            <p class="nav-title">Operations</p>
+            <a class="nav-link active" href="#paymentDesk"><i data-lucide="scan-line"></i> Payment Desk</a>
+            <a class="nav-link" href="#invoicesSection"><i data-lucide="table-properties"></i> Invoices Register <span class="nav-count" id="sidebarInvoiceCount">44</span></a>
+            <a class="nav-link" href="#recentActivity"><i data-lucide="history"></i> Recent Activity</a>
+            <p class="nav-title gap">Excel &amp; Data</p>
+            <button class="nav-link nav-button" id="sidebarOpenXl"><i data-lucide="file-spreadsheet"></i> Example XL Data</button>
+            <button class="nav-link nav-button" id="sidebarImportXl"><i data-lucide="file-up"></i> Import Excel / CSV</button>
+            <button class="nav-link nav-button" id="sidebarExportXl"><i data-lucide="download"></i> Export to Excel</button>
+            <p class="nav-title gap">System</p>
+            <button class="nav-link nav-button" id="openSettings"><i data-lucide="settings-2"></i> Sheet Connection <span class="connection-dot" id="sidebarConnection"></span></button>
+          </nav>
+          <div class="operator">
+            <span class="operator-avatar" id="operatorInitials">RK</span>
+            <span><b id="operatorName">Staff Member</b><small id="operatorPhone">Phone</small></span>
+            <button id="editStaff" title="Change operator info"><i data-lucide="pencil"></i></button>
+          </div>
+        </aside>
+
+        <div class="content">
+          <header class="topbar">
+            <button class="mobile-menu" id="menuToggle" aria-label="Open menu"><i data-lucide="menu"></i></button>
+            <div>
+              <p class="kicker">Bengaluru Pharma Distribution · 15-Sep-2026</p>
+              <h1>Anand Delivery Desk &amp; Register</h1>
+            </div>
+            <div class="topbar-actions">
+              <button class="action-btn-pill" id="openCreateBtn" title="Manually create a new invoice"><i data-lucide="plus-circle"></i> <span>Manual Entry</span></button>
+              <button class="action-btn-pill accent" id="openExampleXlBtn" title="View MARG ERP Example Excel Report"><i data-lucide="file-spreadsheet"></i> <span>Example XL</span></button>
+              <div class="connection-pill" id="connectionPill">
+                <span></span><b>Demo Mode</b><small>Local Storage</small>
+              </div>
+            </div>
+          </header>
+
+          <!-- KPI Metric Summary Bar -->
+          <section class="kpi-grid" aria-label="Daily Delivery Run Metrics">
+            <article class="kpi-card">
+              <span class="kpi-icon blue"><i data-lucide="package"></i></span>
+              <div>
+                <p>Total Invoices</p>
+                <h3 id="metricTotalCount">44</h3>
+                <small id="metricTotalArea">14 clusters</small>
+              </div>
+            </article>
+            <article class="kpi-card">
+              <span class="kpi-icon gold"><i data-lucide="banknote"></i></span>
+              <div>
+                <p>Total Run Value</p>
+                <h3 id="metricTotalValue">₹ 80,644.00</h3>
+                <small>MARG ERP Manifest</small>
+              </div>
+            </article>
+            <article class="kpi-card">
+              <span class="kpi-icon green"><i data-lucide="circle-check"></i></span>
+              <div>
+                <p>Paid / Collected</p>
+                <h3 id="metricPaidValue">₹ 0.00</h3>
+                <small id="metricPaidCount">0 bills paid</small>
+              </div>
+            </article>
+            <article class="kpi-card">
+              <span class="kpi-icon purple"><i data-lucide="clock-3"></i></span>
+              <div>
+                <p>Outstanding</p>
+                <h3 id="metricOutValue">₹ 0.00</h3>
+                <small id="metricOutCount">0 bills</small>
+              </div>
+            </article>
+            <article class="kpi-card">
+              <span class="kpi-icon amber"><i data-lucide="hourglass"></i></span>
+              <div>
+                <p>Pending / Unpaid</p>
+                <h3 id="metricUnpaidValue">₹ 80,644.00</h3>
+                <small id="metricUnpaidCount">44 pending</small>
+              </div>
+            </article>
+          </section>
+
+          <!-- Quick Invoice Lookup & Scan Desk -->
+          <section class="desk-grid" id="paymentDesk">
+            <article class="welcome-card">
+              <div>
+                <p class="kicker">Ready for delivery run</p>
+                <h2>Scan barcode or<br /><em>Enter manually.</em></h2>
+                <p>All 44 MARG ERP delivery invoices for Laggere, Peenya, Andrahalli, and Nelamangala are pre-loaded and ready.</p>
+                <div class="quick-examples">
+                  <span>Quick lookup:</span>
+                  <button class="pill-hint" type="button" data-fill="E24323">E24323</button>
+                  <button class="pill-hint" type="button" data-fill="E24344">E24344</button>
+                  <button class="pill-hint" type="button" data-fill="E24348">E24348</button>
+                  <button class="pill-hint" type="button" data-fill="E24366">E24366</button>
+                </div>
+              </div>
+              <span class="welcome-orb"><i data-lucide="truck"></i></span>
+            </article>
+
+            <article class="lookup-card">
+              <div class="card-heading">
+                <span class="heading-icon"><i data-lucide="scan-line"></i></span>
+                <div>
+                  <h2>Find Invoice for Collection</h2>
+                  <p>Type bill number or scan barcode from package.</p>
+                </div>
+              </div>
+              <div class="lookup-actions">
+                <button class="scan-action" id="openScanner">
+                  <i data-lucide="camera"></i>
+                  <span><b>Scan barcode with camera</b><small>Uses device camera</small></span>
+                  <i data-lucide="arrow-up-right"></i>
+                </button>
+                <div class="manual-divider"><span>or enter bill number</span></div>
+                <form class="manual-form" id="lookupForm">
+                  <label for="invoiceNumber">Invoice / Bill number</label>
+                  <div>
+                    <input id="invoiceNumber" autocomplete="off" placeholder="e.g. E24323" required />
+                    <button class="primary-button" type="submit">Find <i data-lucide="arrow-right"></i></button>
+                  </div>
+                  <p class="manual-capture"><i data-lucide="clock-3"></i> Device clock: <time id="manualEntryTime">—</time></p>
+                </form>
+              </div>
+            </article>
+          </section>
+
+          <!-- Verified Invoice Display Card -->
+          <section class="invoice-section" id="invoiceSection" aria-live="polite">
+            <div class="empty-invoice" id="emptyInvoice">
+              <span class="empty-icon"><i data-lucide="file-search"></i></span>
+              <div>
+                <h2>No invoice selected</h2>
+                <p>Look up an invoice above or click <b>View / Pay</b> on any invoice row in the register below.</p>
+              </div>
+            </div>
+
+            <article class="invoice-card hidden" id="invoiceCard">
+              <div class="invoice-card-head">
+                <div>
+                  <p class="kicker">Invoice Verified</p>
+                  <h2 id="verifiedInvoiceNo">E24323</h2>
+                </div>
+                <div class="head-badges">
+                  <span class="invoice-status" id="invoiceStatus">UNPAID</span>
+                  <button class="action-btn-small" id="cardEditBtn" title="Edit this invoice"><i data-lucide="pencil"></i> Edit</button>
+                  <button class="action-btn-small danger" id="cardDeleteBtn" title="Delete this invoice"><i data-lucide="trash-2"></i> Delete</button>
+                </div>
+              </div>
+              <dl class="invoice-details">
+                <div>
+                  <dt>Drug Store / Party</dt>
+                  <dd id="invoiceStore">—</dd>
+                </div>
+                <div>
+                  <dt>Bill Date</dt>
+                  <dd id="invoiceDate">—</dd>
+                </div>
+                <div>
+                  <dt>Bill Amount</dt>
+                  <dd class="amount" id="invoiceAmount">—</dd>
+                </div>
+                <div>
+                  <dt>Current Payment Mode</dt>
+                  <dd id="invoiceMode">Not recorded</dd>
+                </div>
+              </dl>
+              <div class="audit-note">
+                <i data-lucide="shield-check"></i>
+                <span><b>Safe Payment Collection:</b> Mark as paid with payment mode (UPI, Cash, Cheque) or record as outstanding. Updates are timestamped with operator details.</span>
+              </div>
+              <p class="entry-capture hidden" id="entryCapture">
+                <i data-lucide="clock-3"></i>
+                <span><b id="entrySource">Manual entry</b> <time id="entryCapturedAt">—</time></span>
+              </p>
+              <div class="payment-actions" id="paymentActions">
+                <button class="primary-button" id="openPaymentModes"><i data-lucide="circle-dollar-sign"></i> Payment Received</button>
+                <button class="secondary-button" id="markOutstanding"><i data-lucide="clock-3"></i> Payment Not Received</button>
+              </div>
+              <div class="paid-lock hidden" id="paidLock">
+                <i data-lucide="lock-keyhole"></i>
+                <span><b>This invoice is marked as PAID.</b><small id="paidDetailsText">Collection recorded.</small></span>
+                <button class="link-btn-undo" id="undoPaidBtn" title="Reset payment status to unpaid">Change / Reset</button>
+              </div>
+            </article>
+          </section>
+
+          <!-- Invoices Register (Full CRUD Operations Table) -->
+          <section class="register-section" id="invoicesSection">
+            <div class="table-card">
+              <div class="table-header">
+                <div>
+                  <p class="kicker">Delivery Register</p>
+                  <h2>Delivery Invoices &amp; CRUD Operations</h2>
+                  <p class="sub-copy">Search, filter, edit, delete, or create invoices manually. Loaded with 44 MARG ERP records.</p>
+                </div>
+                <div class="table-actions">
+                  <button class="primary-button" id="tableAddInvoiceBtn"><i data-lucide="plus"></i> New Invoice (Manual Entry)</button>
+                  <button class="outline-btn" id="tableResetBtn" title="Reload original 44 MARG ERP rows"><i data-lucide="rotate-ccw"></i> Reset to Example XL</button>
+                  <button class="outline-btn" id="tableExportBtn" title="Export current register to Excel"><i data-lucide="file-spreadsheet"></i> Export XLSX</button>
+                </div>
+              </div>
+
+              <!-- Filter Tabs and Search Bar -->
+              <div class="table-toolbar">
+                <div class="search-box">
+                  <i data-lucide="search"></i>
+                  <input id="tableSearchInput" placeholder="Search by Bill No., Store name, or Area (e.g. Laggere, E24323)..." />
+                  <button id="clearSearchBtn" class="clear-btn hidden" title="Clear search"><i data-lucide="x"></i></button>
+                </div>
+                <div class="filter-tabs">
+                  <button class="filter-tab active" data-filter="ALL">All <span class="tab-badge" id="filterCountAll">44</span></button>
+                  <button class="filter-tab" data-filter="UNPAID">Unpaid <span class="tab-badge" id="filterCountUnpaid">44</span></button>
+                  <button class="filter-tab" data-filter="PAID">Paid <span class="tab-badge" id="filterCountPaid">0</span></button>
+                  <button class="filter-tab" data-filter="OUTSTANDING">Outstanding <span class="tab-badge" id="filterCountOut">0</span></button>
+                </div>
+              </div>
+
+              <!-- Table Container -->
+              <div class="table-responsive">
+                <table class="crud-table" id="crudTable">
+                  <thead>
+                    <tr>
+                      <th data-sort="invoiceNo">Bill No. <i data-lucide="chevrons-up-down"></i></th>
+                      <th data-sort="date">Date <i data-lucide="chevrons-up-down"></i></th>
+                      <th data-sort="drugStore">Drug Store / Party <i data-lucide="chevrons-up-down"></i></th>
+                      <th data-sort="amount" class="text-right">Amount (₹) <i data-lucide="chevrons-up-down"></i></th>
+                      <th data-sort="paymentStatus">Payment Status <i data-lucide="chevrons-up-down"></i></th>
+                      <th>Mode</th>
+                      <th>Staff Audit</th>
+                      <th class="text-center">Actions (CRUD)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableBody">
+                    <!-- Invoices rows populated via JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Table Footer -->
+              <div class="table-footer">
+                <span id="tableSummaryText">Showing 44 of 44 invoices</span>
+                <span class="total-sum" id="tableTotalSum">Total: ₹ 80,644.00</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Recent Activity Audit Section -->
+          <section class="activity-section" id="recentActivity">
+            <div class="section-title">
+              <div>
+                <p class="kicker">Audit Trail</p>
+                <h2>Recent Payment Desk Activity</h2>
+              </div>
+              <button class="text-button" id="clearActivity">Clear local history</button>
+            </div>
+            <div class="activity-list" id="activityList"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: CREATE / MANUAL ENTRY INVOICE -->
+    <div class="modal-layer" id="createModal" aria-hidden="true">
+      <section class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="createModalTitle">
+        <button class="close-button" data-close="createModal" aria-label="Close"><i data-lucide="x"></i></button>
+        <span class="heading-icon"><i data-lucide="plus-circle"></i></span>
+        <p class="kicker">Manual Entry</p>
+        <h2 id="createModalTitle">Add New Invoice Manually</h2>
+        <p class="modal-copy">Create a new delivery bill directly in the register. It will be immediately available for barcode lookup, edit, or collection.</p>
+        <form id="createInvoiceForm" novalidate>
+          <div class="form-grid">
+            <label>Bill / Invoice Number *
+              <input id="createInvoiceNo" placeholder="e.g. E24367" required />
+            </label>
+            <label>Bill Date
+              <input id="createDate" type="text" placeholder="15-09-2026" value="15-09-2026" required />
+            </label>
+            <label class="full-width">Drug Store / Party Name *
+              <input id="createStore" placeholder="e.g. SRI MANJUNATHA PHARMA (PEENYA)" required />
+            </label>
+            <label>Amount (₹) *
+              <input id="createAmount" type="number" step="0.01" min="0" placeholder="e.g. 1750.00" required />
+            </label>
+            <label>Payment Status
+              <select id="createStatus">
+                <option value="UNPAID">UNPAID (Pending)</option>
+                <option value="PAID">PAID (Collected)</option>
+                <option value="OUTSTANDING">OUTSTANDING (Not Received)</option>
+              </select>
+            </label>
+            <label id="createModeContainer" class="hidden">Payment Mode
+              <select id="createMode">
+                <option value="UPI">UPI Digital Payment</option>
+                <option value="CASH">Cash</option>
+                <option value="CHEQUE">Cheque</option>
+              </select>
+            </label>
+            <label class="full-width">Notes / Area Remarks
+              <input id="createNotes" placeholder="e.g. Near bus stop, deliver before 2 PM" />
+            </label>
+          </div>
+          <p class="field-error" id="createError" role="alert"></p>
+          <div class="modal-buttons">
+            <button class="secondary-button" type="button" data-close="createModal">Cancel</button>
+            <button class="primary-button" type="submit">Create Invoice <i data-lucide="check"></i></button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <!-- Modal: EDIT / UPDATE INVOICE -->
+    <div class="modal-layer" id="editModal" aria-hidden="true">
+      <section class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+        <button class="close-button" data-close="editModal" aria-label="Close"><i data-lucide="x"></i></button>
+        <span class="heading-icon"><i data-lucide="pencil"></i></span>
+        <p class="kicker">Update Invoice</p>
+        <h2 id="editModalTitle">Edit Invoice Details</h2>
+        <p class="modal-copy">Modify pharmacy details, bill amount, or update payment status.</p>
+        <form id="editInvoiceForm" novalidate>
+          <input type="hidden" id="editInvoiceNoOriginal" />
+          <div class="form-grid">
+            <label>Bill Number
+              <input id="editInvoiceNo" readonly class="input-readonly" />
+            </label>
+            <label>Date
+              <input id="editDate" placeholder="15-09-2026" required />
+            </label>
+            <label class="full-width">Drug Store / Party Name *
+              <input id="editStore" required />
+            </label>
+            <label>Amount (₹) *
+              <input id="editAmount" type="number" step="0.01" min="0" required />
+            </label>
+            <label>Payment Status
+              <select id="editStatus">
+                <option value="UNPAID">UNPAID (Pending)</option>
+                <option value="PAID">PAID (Collected)</option>
+                <option value="OUTSTANDING">OUTSTANDING (Not Received)</option>
+              </select>
+            </label>
+            <label id="editModeContainer">Payment Mode
+              <select id="editMode">
+                <option value="">None (Unpaid / Outstanding)</option>
+                <option value="UPI">UPI</option>
+                <option value="CASH">Cash</option>
+                <option value="CHEQUE">Cheque</option>
+              </select>
+            </label>
+            <label class="full-width">Notes
+              <input id="editNotes" placeholder="Optional notes..." />
+            </label>
+          </div>
+          <p class="field-error" id="editError" role="alert"></p>
+          <div class="modal-buttons">
+            <button class="secondary-button" type="button" data-close="editModal">Cancel</button>
+            <button class="primary-button" type="submit">Save Changes <i data-lucide="check"></i></button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <!-- Modal: DELETE CONFIRMATION -->
+    <div class="modal-layer" id="deleteModal" aria-hidden="true">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+        <button class="close-button" data-close="deleteModal" aria-label="Close"><i data-lucide="x"></i></button>
+        <span class="heading-icon danger"><i data-lucide="trash-2"></i></span>
+        <p class="kicker">Delete Confirmation</p>
+        <h2 id="deleteModalTitle">Delete Invoice?</h2>
+        <p class="modal-copy" id="deleteModalCopy">Are you sure you want to delete invoice <b id="deleteInvoiceNo">E24323</b>? This action will remove it from the register.</p>
+        <div class="modal-buttons">
+          <button class="secondary-button" type="button" data-close="deleteModal">Keep Invoice</button>
+          <button class="danger-button" id="confirmDeleteBtn"><i data-lucide="trash-2"></i> Confirm Delete</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal: EXAMPLE XL DATA EXPLORER & ANALYSIS -->
+    <div class="modal-layer" id="exampleXlModal" aria-hidden="true">
+      <section class="modal modal-xl" role="dialog" aria-modal="true" aria-labelledby="xlModalTitle">
+        <button class="close-button" data-close="exampleXlModal" aria-label="Close"><i data-lucide="x"></i></button>
+        <span class="heading-icon"><i data-lucide="file-spreadsheet"></i></span>
+        <p class="kicker">Dataset Analysis</p>
+        <h2 id="xlModalTitle">Example XL Data — MARG ERP Excel Report</h2>
+        <p class="modal-copy">Here is the exact dataset extracted from <code>REPORT_1 (1).XLS</code> / <code>media_1792249247025_c4891f04.xls</code>. 44 pharmaceutical delivery invoices across Bengaluru clusters.</p>
+
+        <div class="xl-summary-box">
+          <div class="xl-stat"><label>Total Records</label><b>44 Bills</b></div>
+          <div class="xl-stat"><label>Total Manifest Value</label><b>₹ 80,644.00</b></div>
+          <div class="xl-stat"><label>Invoice Date</label><b>15-09-2026</b></div>
+          <div class="xl-stat"><label>Source Worksheet</label><b>MARG ERP AI+ Excel Report</b></div>
+        </div>
+
+        <div class="xl-actions-bar">
+          <button class="primary-button" id="xlLoadAllBtn"><i data-lucide="check-check"></i> Load All 44 into Live Register</button>
+          <button class="outline-btn" id="xlDownloadXlsxBtn"><i data-lucide="file-spreadsheet"></i> Download as Excel (.xlsx)</button>
+          <button class="outline-btn" id="xlDownloadCsvBtn"><i data-lucide="download"></i> Download as CSV</button>
+        </div>
+
+        <div class="xl-table-wrapper">
+          <table class="xl-preview-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>BILL NO.</th>
+                <th>DATE</th>
+                <th>PARTY (PHARMACY &amp; ROUTE CODE)</th>
+                <th class="text-right">AMOUNT (₹)</th>
+              </tr>
+            </thead>
+            <tbody id="xlPreviewBody">
+              <!-- Loaded via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal: IMPORT EXCEL / CSV -->
+    <div class="modal-layer" id="importModal" aria-hidden="true">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+        <button class="close-button" data-close="importModal" aria-label="Close"><i data-lucide="x"></i></button>
+        <span class="heading-icon"><i data-lucide="file-up"></i></span>
+        <p class="kicker">File Ingestion</p>
+        <h2 id="importTitle">Import Excel or CSV Report</h2>
+        <p class="modal-copy">Upload any MARG ERP or invoice spreadsheet (<code>.xls</code>, <code>.xlsx</code>, <code>.csv</code>). It auto-detects columns: <code>BILL NO.</code>, <code>DATE</code>, <code>PARTY</code>, and <code>AMOUNT</code>.</p>
+        
+        <div class="drop-zone" id="dropZone">
+          <i data-lucide="upload-cloud"></i>
+          <b>Click to select file or drag &amp; drop</b>
+          <small>Accepts .xls, .xlsx, .csv (up to 10 MB)</small>
+          <input type="file" id="importFileInput" accept=".xls,.xlsx,.csv" />
+        </div>
+
+        <div id="importPreviewBox" class="import-preview-box hidden">
+          <p id="importFileName" class="import-file-name"></p>
+          <p id="importStats" class="import-stats"></p>
+          <label class="merge-option">
+            <input type="checkbox" id="importReplaceCheckbox" />
+            <span>Replace existing register (uncheck to merge)</span>
+          </label>
+        </div>
+
+        <div class="modal-buttons">
+          <button class="secondary-button" type="button" data-close="importModal">Cancel</button>
+          <button class="primary-button" id="confirmImportBtn" disabled>Import Records <i data-lucide="arrow-right"></i></button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal: BARCODE CAMERA SCANNER -->
+    <div class="modal-layer" id="scannerModal" aria-hidden="true">
+      <section class="modal scanner-modal" role="dialog" aria-modal="true" aria-labelledby="scannerTitle">
+        <button class="close-button" data-close="scannerModal" aria-label="Close scanner"><i data-lucide="x"></i></button>
+        <p class="kicker">High-Speed Scanner</p>
+        <h2 id="scannerTitle">Scan Invoice Barcode</h2>
+        <p class="modal-copy">Align barcode in the wide frame. Supports Code 128, Code 39, EAN-13, and QR codes.</p>
+
+        <!-- Scanner Toolbar: Camera Selector, Torch & Restart -->
+        <div class="scanner-toolbar">
+          <select id="scannerCameraSelect" class="scanner-camera-select">
+            <option value="">Camera: Auto-Select</option>
+          </select>
+          <button id="scannerTorchBtn" class="scanner-btn-tool hidden" type="button" title="Toggle Flashlight"><i data-lucide="zap"></i></button>
+          <button id="scannerRestartBtn" class="scanner-btn-tool" type="button" title="Restart Camera"><i data-lucide="refresh-cw"></i></button>
+        </div>
+
+        <div class="camera-box" id="cameraBox">
+          <video id="nativeVideo" autoplay playsinline muted class="hidden"></video>
+          <div id="html5Reader" aria-label="Barcode camera preview"></div>
+          
+          <!-- Wide 1D Reticle with Animated Laser -->
+          <div class="scan-reticle" id="scanReticle">
+            <div class="laser-scanner"></div>
+            <span class="corner tl"></span>
+            <span class="corner tr"></span>
+            <span class="corner bl"></span>
+            <span class="corner br"></span>
+            <span class="reticle-hint">Center invoice barcode inside frame</span>
+          </div>
+
+          <div class="camera-placeholder" id="cameraPlaceholder">
+            <i data-lucide="camera"></i>
+            <b>Camera Ready</b>
+            <span>Allow camera permission to scan package barcodes</span>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin: 6px 0 10px;">
+          <p class="scan-message" id="scanMessage" style="margin:0;"><i data-lucide="radio"></i> Looking for barcode…</p>
+          <span class="engine-badge" id="scannerEngineBadge"><i data-lucide="cpu"></i> Hardware Acceleration</span>
+        </div>
+
+        <!-- USB Barcode Gun hint -->
+        <div class="scanner-usb-hint">
+          <i data-lucide="barcode"></i>
+          <span><b>Handheld Barcode Gun:</b> Plug in any USB / Bluetooth barcode gun and scan anytime—no camera needed!</span>
+        </div>
+
+        <label class="image-scan" for="barcodeImage">
+          <i data-lucide="image-up"></i>
+          <span><b>Scan from an Image / Photo</b><small>Upload barcode photo or screenshot (Instant ML decode)</small></span>
+          <input id="barcodeImage" type="file" accept="image/*" capture="environment" />
+        </label>
+        <form class="camera-manual" id="cameraManualForm">
+          <label for="cameraInvoice">Can't scan? Enter invoice number manually</label>
+          <div>
+            <input id="cameraInvoice" placeholder="e.g. E24323" />
+            <button type="submit">Use Code</button>
+          </div>
+        </form>
+
+        <!-- Expandable Test Barcodes Section -->
+        <div class="test-barcodes-box">
+          <button type="button" class="test-barcodes-toggle" id="toggleTestBarcodesBtn">
+            <span><i data-lucide="sparkles"></i> <b>Need to test scanner?</b> Click to view sample barcodes</span>
+            <i data-lucide="chevron-down" id="testBarcodesChevron"></i>
+          </button>
+          <div class="test-barcodes-content hidden" id="testBarcodesContent">
+            <p class="test-hint">Scan these barcodes with your webcam or phone, or click <b>Simulate Scan</b> to test instant lookup:</p>
+            <div class="test-barcodes-grid" id="testBarcodesGrid">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal: SELECT PAYMENT MODE -->
+    <div class="modal-layer" id="paymentModal" aria-hidden="true">
+      <section class="modal payment-modal" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
+        <button class="close-button" data-close="paymentModal" aria-label="Close"><i data-lucide="x"></i></button>
+        <span class="heading-icon"><i data-lucide="wallet-cards"></i></span>
+        <p class="kicker">Payment Received</p>
+        <h2 id="paymentTitle">Select Payment Mode</h2>
+        <p class="modal-copy">Choose how the pharmacy paid for this invoice. Operator details will be attached.</p>
+        <div class="mode-grid">
+          <button data-mode="UPI" type="button">
+            <i data-lucide="smartphone"></i>
+            <b>UPI</b>
+            <small>PhonePe, GPay, Paytm</small>
+          </button>
+          <button data-mode="CASH" type="button">
+            <i data-lucide="banknote"></i>
+            <b>Cash</b>
+            <small>Hard cash collected</small>
+          </button>
+          <button data-mode="CHEQUE" type="button">
+            <i data-lucide="scroll-text"></i>
+            <b>Cheque</b>
+            <small>Bank cheque collected</small>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal: GOOGLE SHEET CONFIGURATION -->
+    <div class="modal-layer" id="settingsModal" aria-hidden="true">
+      <section class="modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <button class="close-button" data-close="settingsModal" aria-label="Close"><i data-lucide="x"></i></button>
+        <span class="heading-icon"><i data-lucide="table-properties"></i></span>
+        <p class="kicker">System Configuration</p>
+        <h2 id="settingsTitle">Google Sheet Connection</h2>
+        <p class="modal-copy">Optionally link your central Google Sheet backend via Apps Script for live team synchronization.</p>
+        <form id="settingsForm">
+          <label>Apps Script Web App Deployment URL
+            <input id="endpoint" type="url" placeholder="https://script.google.com/macros/s/…/exec" />
+          </label>
+          <label>API Key
+            <input id="apiKey" type="password" autocomplete="off" placeholder="Your ANAND_API_KEY" />
+          </label>
+          <p class="settings-notice">
+            <i data-lucide="info"></i>
+            <span>Leave both fields blank to work in offline-first browser storage mode. All CRUD operations and the 44 MARG ERP records work immediately without setup.</span>
+          </p>
+          <div class="modal-buttons">
+            <button class="secondary-button" type="button" data-close="settingsModal">Cancel</button>
+            <button class="primary-button" type="submit">Save Connection <i data-lucide="check"></i></button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <!-- Modal: CONFIRMATION SUCCESS -->
+    <div class="modal-layer" id="confirmModal" aria-hidden="true">
+      <section class="modal confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <span class="success-icon"><i data-lucide="check"></i></span>
+        <p class="kicker">Record Updated</p>
+        <h2 id="confirmTitle">Update Successful</h2>
+        <p class="modal-copy" id="confirmCopy">The invoice record has been updated.</p>
+        <div class="modal-buttons">
+          <span></span>
+          <button class="primary-button" data-close="confirmModal">Done <i data-lucide="arrow-right"></i></button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,294 @@
+.demo-hint {
+  color: #7693a1;
+  font: 9px 'DM Mono', monospace;
+  margin: 9px 0 0;
+}
+
+.manual-capture,
+.entry-capture {
+  align-items: center;
+  color: #69818e;
+  display: flex;
+  font-size: 9px;
+  gap: 5px;
+  margin: 8px 0 0;
+}
+
+.manual-capture svg,
+.entry-capture > svg { color: #2f7b9a; width: 12px; }
+.manual-capture time { color: #416373; font-family: 'DM Mono', monospace; }
+.entry-capture { background: #f4f8f9; border-radius: 7px; padding: 8px 9px; }
+.entry-capture span { display: flex; flex-direction: column; gap: 1px; }
+.entry-capture b { color: #416373; font-size: 9px; }
+.entry-capture time { color: #758c98; font: 8px 'DM Mono', monospace; }
+
+/* Camera viewport & dual video support */
+.camera-box {
+  position: relative;
+  height: 270px;
+  background: #061826;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 14px 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-box video#nativeVideo {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.camera-box #html5Reader {
+  inset: 0;
+  position: absolute;
+  z-index: 1;
+}
+
+.camera-box #html5Reader video {
+  height: 100% !important;
+  object-fit: cover;
+  width: 100% !important;
+}
+
+.camera-box #html5Reader__dashboard {
+  display: none !important;
+}
+
+/* 1D Wide Barcode Viewfinder Reticle & Laser */
+.scan-reticle {
+  position: absolute;
+  width: 82%;
+  max-width: 380px;
+  height: 140px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(6, 24, 38, 0.45);
+  border-radius: 8px;
+}
+
+.laser-scanner {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  height: 2px;
+  background: #f1c21b;
+  box-shadow: 0 0 10px #f1c21b, 0 0 4px #fff;
+  animation: laserSweep 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes laserSweep {
+  0% { top: 12%; }
+  100% { top: 88%; }
+}
+
+.corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: #f1c21b;
+  border-style: solid;
+}
+.corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-top-left-radius: 6px; }
+.corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-top-right-radius: 6px; }
+.corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-bottom-left-radius: 6px; }
+.corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-bottom-right-radius: 6px; }
+
+.reticle-hint {
+  position: absolute;
+  bottom: -24px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 600 10px Manrope, sans-serif;
+  color: #bee3f8;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  letter-spacing: 0.3px;
+}
+
+/* Green flash on detection */
+.scan-success-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(36, 161, 72, 0.45);
+  z-index: 10;
+  pointer-events: none;
+  animation: flashOut 0.4s ease forwards;
+}
+@keyframes flashOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Scanner Toolbar & Camera Selector */
+.scanner-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+.scanner-camera-select {
+  flex: 1;
+  height: 34px;
+  font-size: 11px;
+  background: #f8fafc;
+  border: 1px solid #d9e2ec;
+  border-radius: 6px;
+  padding: 0 10px;
+  font-weight: 600;
+  color: #334e68;
+}
+.scanner-btn-tool {
+  height: 34px;
+  width: 34px;
+  border: 1px solid #d9e2ec;
+  background: #fff;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: #334e68;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.scanner-btn-tool:hover {
+  background: #ebf8ff;
+  border-color: #bee3f8;
+  color: #14769f;
+}
+.scanner-btn-tool.active {
+  background: #f1c21b;
+  border-color: #d4a613;
+  color: #102a43;
+}
+.scanner-btn-tool svg { width: 15px; }
+
+/* Engine indicator badge */
+.engine-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e1eff6;
+  color: #0f5c7c;
+  font: 700 9px 'DM Mono', monospace;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-top: 4px;
+}
+.engine-badge svg { width: 12px; color: #14769f; }
+
+/* USB Barcode gun notice */
+.scanner-usb-hint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #f0f7fa;
+  border: 1px dashed #bee3f8;
+  border-radius: 7px;
+  padding: 8px 10px;
+  font-size: 10px;
+  color: #334e68;
+  margin: 10px 0 0;
+}
+.scanner-usb-hint svg { width: 16px; color: #14769f; flex: 0 0 auto; }
+.scanner-usb-hint b { color: #102a43; }
+
+.image-scan {
+  align-items: center;
+  border: 1px dashed #bdd2dc;
+  border-radius: 8px;
+  color: #14769f;
+  background: #f8fafc;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  transition: background 0.15s;
+}
+.image-scan:hover { background: #ebf8ff; border-color: #bee3f8; }
+.image-scan > svg { width: 20px; }
+.image-scan span { display: flex; flex-direction: column; gap: 2px; }
+.image-scan b { font-size: 11px; color: #102a43; }
+.image-scan small { color: #627d98; font-size: 9px; }
+.image-scan input { display: none; }
+
+/* Test Barcodes Collapsible */
+.test-barcodes-box {
+  margin-top: 14px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+}
+.test-barcodes-toggle {
+  width: 100%;
+  background: #f8fafc;
+  border: 1px solid #d9e2ec;
+  border-radius: 7px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font: 600 11px Manrope, sans-serif;
+  color: #334e68;
+  transition: all 0.15s;
+}
+.test-barcodes-toggle:hover { background: #ebf8ff; border-color: #bee3f8; }
+.test-barcodes-toggle span { display: flex; align-items: center; gap: 6px; }
+.test-barcodes-toggle svg { width: 14px; color: #14769f; }
+.test-barcodes-content {
+  margin-top: 10px;
+  background: #f0f4f8;
+  border-radius: 8px;
+  padding: 12px;
+}
+.test-hint { font-size: 10px; color: #627d98; margin: 0 0 10px; }
+.test-barcodes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.barcode-card {
+  background: #fff;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.barcode-card p {
+  font-size: 10px;
+  font-weight: 700;
+  color: #102a43;
+  margin: 0;
+}
+.barcode-card small {
+  font-size: 8px;
+  color: #627d98;
+}
+.barcode-card button {
+  background: #ebf8ff;
+  border: 1px solid #bee3f8;
+  color: #0f5c7c;
+  font: 700 9px Manrope, sans-serif;
+  border-radius: 5px;
+  padding: 3px 8px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.barcode-card button:hover {
+  background: #d7effb;
+}
+
